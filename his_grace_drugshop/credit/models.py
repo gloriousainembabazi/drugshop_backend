@@ -3,6 +3,7 @@
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
+from datetime import date  # Add this import at the top
 from his_grace_drugshop.medicines.models import Medicine
 
 class Customer(models.Model):
@@ -72,12 +73,20 @@ class CreditSale(models.Model):
     
     @property
     def balance(self):
-        return self.total_amount - self.amount_paid
+        # Handle None values by converting to 0
+        total = self.total_amount if self.total_amount is not None else Decimal('0.00')
+        paid = self.amount_paid if self.amount_paid is not None else Decimal('0.00')
+        return total - paid
     
     @property
     def is_overdue(self):
         from datetime import date
-        return date.today() > self.due_date and self.balance > Decimal('0.00')
+        # Handle if due_date is a string by converting it to date
+        due = self.due_date
+        if isinstance(due, str):
+            from datetime import datetime
+            due = datetime.strptime(due, '%Y-%m-%d').date()
+        return date.today() > due and self.balance > Decimal('0.00')
     
     def save(self, *args, **kwargs):
         if not self.credit_id:
