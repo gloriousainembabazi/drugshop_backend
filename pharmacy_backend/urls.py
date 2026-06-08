@@ -9,6 +9,10 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('his_grace_drugshop.users.urls')),
+    
+    # 🌟 FIXED: Added this route line to capture user profile/language startup requests
+    path('api/user/', include('his_grace_drugshop.users.urls')),
+    
     path('api/medicines/', include('his_grace_drugshop.medicines.urls')),
     path('api/sales/', include('his_grace_drugshop.sales.urls')),
     path('api/reports/', include('his_grace_drugshop.reports.urls')),

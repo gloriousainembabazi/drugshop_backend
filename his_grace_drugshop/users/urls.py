@@ -1,4 +1,3 @@
-# urls.py
 from django.urls import path
 from . import views
 
@@ -11,4 +10,7 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/', views.reset_password, name='reset_password'),
     path('current-user/', views.get_current_user, name='current_user'),
+    
+    # 🌟 FIXED: Added this line to route the frontend's initialization requests
+    path('language/', views.user_language_view, name='user_language'),
 ]

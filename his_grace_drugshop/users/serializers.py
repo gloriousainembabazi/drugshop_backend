@@ -1,4 +1,3 @@
-# serializers.py
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
@@ -9,6 +8,8 @@ from .models import User, OTP
 from datetime import datetime, timedelta
 import random
 from django.contrib.auth.hashers import check_password
+# 🌟 ADDED: Required for combining username OR email database filtering
+from django.db.models import Q
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,11 +50,12 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        username = data.get("username")
+        username_input = data.get("username")
         password = data.get("password")
 
         try:
-            user = User.objects.get(username=username)
+            # 🌟 FIXED: Looks up input string against BOTH username field and email field
+            user = User.objects.get(Q(username=username_input) | Q(email=username_input))
         except User.DoesNotExist:
             raise serializers.ValidationError("User not found")
 
@@ -64,6 +66,7 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("User is inactive")
 
         return user
+
 class OTPSendSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False)
