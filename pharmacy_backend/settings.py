@@ -14,10 +14,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key')
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv(
-    'ALLOWED_HOSTS',
-    '127.0.0.1,localhost'
-).split(',') if os.getenv('ALLOWED_HOSTS') else []
+ALLOWED_HOSTS = [
+    host.strip() for host in os.getenv(
+        'ALLOWED_HOSTS',
+        '127.0.0.1,localhost'
+    ).split(',')
+]
 
 
 # =========================
@@ -57,15 +59,10 @@ AUTHENTICATION_BACKENDS = [
 # =========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # WhiteNoise (must be immediately after SecurityMiddleware)
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'corsheaders.middleware.CorsMiddleware',
-
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -104,9 +101,7 @@ WSGI_APPLICATION = 'pharmacy_backend.wsgi.application'
 # =========================
 DATABASES = {
     'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-        ssl_require=False
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}'
     )
 }
 
@@ -132,12 +127,14 @@ USE_TZ = True
 
 
 # =========================
-# STATIC FILES
+# STATIC FILES (FIXED FOR RENDER)
 # =========================
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STATICFILES_DIRS = []  # ✅ FIX
 
 
 # =========================
@@ -176,20 +173,22 @@ CORS_ALLOW_HEADERS = [
 
 
 # =========================
-# CSRF SETTINGS
+# CSRF SETTINGS (FIXED FOR RENDER)
 # =========================
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv(
+    origin.strip() for origin in os.getenv(
         'CSRF_TRUSTED_ORIGINS',
         'http://127.0.0.1:8000,http://localhost:8000'
     ).split(',')
-    if origin.strip()
 ]
+
+
+# FIX (IMPORTANT FOR HTTPS ON RENDER)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # =========================
