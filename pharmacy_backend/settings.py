@@ -108,9 +108,12 @@ WSGI_APPLICATION = 'pharmacy_backend.wsgi.application'
 # =========================
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL"),
+        default=os.getenv(
+            "DATABASE_URL",
+            f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+        ),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=True,
     )
 }
 
@@ -171,6 +174,7 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 
 # =========================
+# =========================
 # CSRF TRUSTED ORIGINS
 # =========================
 CSRF_TRUSTED_ORIGINS = []
@@ -183,6 +187,9 @@ for port in range(3000, 60000):
 render_domain = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 if render_domain:
     CSRF_TRUSTED_ORIGINS.append(f"https://{render_domain}")
+
+# Always trust your Render deployment
+CSRF_TRUSTED_ORIGINS.append("https://drugshop-backend-1.onrender.com")
 
 # =========================
 # CORS METHODS
