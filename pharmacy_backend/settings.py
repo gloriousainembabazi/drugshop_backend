@@ -1,14 +1,30 @@
 import os
 from pathlib import Path
 
+import dj_database_url
+from dotenv import load_dotenv
+
+# =========================
+# LOAD ENVIRONMENT VARIABLES
+# =========================
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key-here'
+# =========================
+# SECURITY
+# =========================
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "django-insecure-your-secret-key-here"
+)
 
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS",
+    "127.0.0.1,localhost,.koyeb.app"
+).split(",")
 
 # =========================
 # INSTALLED APPS
@@ -25,7 +41,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    
 
     # Local apps
     'his_grace_drugshop.users',
@@ -37,18 +52,19 @@ INSTALLED_APPS = [
     'his_grace_drugshop.prescriptions',
     'his_grace_drugshop.stock',
 ]
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
-
 
 # =========================
 # MIDDLEWARE
 # =========================
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
 
@@ -61,7 +77,6 @@ MIDDLEWARE = [
 # ROOT URLS
 # =========================
 ROOT_URLCONF = 'pharmacy_backend.urls'
-
 
 # =========================
 # TEMPLATES
@@ -82,23 +97,21 @@ TEMPLATES = [
     },
 ]
 
-
 # =========================
 # WSGI
 # =========================
 WSGI_APPLICATION = 'pharmacy_backend.wsgi.application'
 
-
 # =========================
 # DATABASE
 # =========================
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=False,
+    )
 }
-
 
 # =========================
 # PASSWORD VALIDATORS
@@ -118,7 +131,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # =========================
 # INTERNATIONALIZATION
 # =========================
@@ -130,45 +142,45 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # =========================
 # STATIC FILES
 # =========================
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # =========================
 # DEFAULT PRIMARY KEY
 # =========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 # =========================
 # CUSTOM USER MODEL
 # =========================
 AUTH_USER_MODEL = 'users.User'
 
-
 # =========================
 # CORS SETTINGS
 # =========================
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 CORS_ALLOW_CREDENTIALS = True
-
 
 # =========================
 # CSRF TRUSTED ORIGINS
 # =========================
 CSRF_TRUSTED_ORIGINS = []
 
-# Allow all localhost ports (Flutter/React dev)
 for port in range(3000, 60000):
     CSRF_TRUSTED_ORIGINS.append(f"http://localhost:{port}")
     CSRF_TRUSTED_ORIGINS.append(f"http://127.0.0.1:{port}")
 
+# Add Koyeb domain
+koyeb_domain = os.getenv("KOYEB_PUBLIC_DOMAIN")
+if koyeb_domain:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{koyeb_domain}")
 
 # =========================
 # CORS METHODS
@@ -181,7 +193,6 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-
 
 # =========================
 # CORS HEADERS
@@ -198,16 +209,16 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-
 # =========================
 # CSRF SETTINGS
 # =========================
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = not DEBUG
 
 CSRF_COOKIE_HTTPONLY = False
 
 CSRF_COOKIE_SAMESITE = 'Lax'
 
+SESSION_COOKIE_SECURE = not DEBUG
 
 # =========================
 # REST FRAMEWORK
@@ -224,30 +235,38 @@ REST_FRAMEWORK = {
     'UNAUTHENTICATED_USER': None,
 }
 
-
 # =========================
 # EMAIL SETTINGS
 # =========================
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = 'smtp.gmail.com'
+
 EMAIL_PORT = 587
+
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'gloriousainembabazi16@gmail.com'
-EMAIL_HOST_PASSWORD = 'nanr dgbp zfql wkdm' 
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 
-DEFAULT_FROM_EMAIL = 'His Grace Drugshop <gloriousainembabazi16@gmail.com>'
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+DEFAULT_FROM_EMAIL = f'His Grace Drugshop <{EMAIL_HOST_USER}>'
 
 # =========================
-# FRONTEND SETTINGS (For Email Verification)
+# FRONTEND SETTINGS
 # =========================
-# Use a flexible approach that accepts any localhost port
-# The actual port will be captured from the request
-FRONTEND_BASE_URL = 'http://localhost'  # Base URL without port
+FRONTEND_BASE_URL = os.getenv(
+    "FRONTEND_BASE_URL",
+    "http://localhost"
+)
 
-# Email verification token expiry (24 hours)
-EMAIL_VERIFICATION_TOKEN_EXPIRY = 86400  # 24 hours in seconds
+EMAIL_VERIFICATION_TOKEN_EXPIRY = 86400
 
-# For development, you can also use console backend by changing the above EMAIL_BACKEND to:
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# =========================
+# PRODUCTION SETTINGS
+# =========================
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+USE_X_FORWARDED_HOST = True
+
+SECURE_SSL_REDIRECT = not DEBUG
