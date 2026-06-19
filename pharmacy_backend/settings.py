@@ -23,7 +23,7 @@ DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = os.getenv(
     "ALLOWED_HOSTS",
-    "127.0.0.1,localhost,.koyeb.app"
+    "127.0.0.1,localhost,.onrender.com"
 ).split(",")
 
 # =========================
@@ -103,13 +103,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pharmacy_backend.wsgi.application'
 
 # =========================
-# DATABASE
+# DATABASE (FIXED - IMPORTANT)
 # =========================
 DATABASES = {
     "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=os.getenv("DATABASE_URL"),
         conn_max_age=600,
-        ssl_require=False,
+        ssl_require=True
     )
 }
 
@@ -146,7 +146,6 @@ USE_TZ = True
 # STATIC FILES
 # =========================
 STATIC_URL = '/static/'
-
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -165,7 +164,6 @@ AUTH_USER_MODEL = 'users.User'
 # CORS SETTINGS
 # =========================
 CORS_ALLOW_ALL_ORIGINS = DEBUG
-
 CORS_ALLOW_CREDENTIALS = True
 
 # =========================
@@ -177,10 +175,10 @@ for port in range(3000, 60000):
     CSRF_TRUSTED_ORIGINS.append(f"http://localhost:{port}")
     CSRF_TRUSTED_ORIGINS.append(f"http://127.0.0.1:{port}")
 
-# Add Koyeb domain
-koyeb_domain = os.getenv("KOYEB_PUBLIC_DOMAIN")
-if koyeb_domain:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{koyeb_domain}")
+# Add Render domain dynamically if provided
+render_domain = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if render_domain:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render_domain}")
 
 # =========================
 # CORS METHODS
@@ -213,9 +211,7 @@ CORS_ALLOW_HEADERS = [
 # CSRF SETTINGS
 # =========================
 CSRF_COOKIE_SECURE = not DEBUG
-
 CSRF_COOKIE_HTTPONLY = False
-
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 SESSION_COOKIE_SECURE = not DEBUG
@@ -227,11 +223,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-
     'UNAUTHENTICATED_USER': None,
 }
 
@@ -241,13 +235,10 @@ REST_FRAMEWORK = {
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = 'smtp.gmail.com'
-
 EMAIL_PORT = 587
-
 EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = f'His Grace Drugshop <{EMAIL_HOST_USER}>'
@@ -266,7 +257,5 @@ EMAIL_VERIFICATION_TOKEN_EXPIRY = 86400
 # PRODUCTION SETTINGS
 # =========================
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 USE_X_FORWARDED_HOST = True
-
 SECURE_SSL_REDIRECT = not DEBUG
