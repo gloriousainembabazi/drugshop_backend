@@ -5,8 +5,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse # Import this
+
+# Define the view function
+def home(request):
+    return JsonResponse({"message": "Drugshop Backend is running 🚀"})
 
 urlpatterns = [
+    path('', home), # Add this line to handle the root URL
     path('admin/', admin.site.urls),
     path('api/auth/', include('his_grace_drugshop.users.urls')),
     
