@@ -21,6 +21,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # ✅ ADD THIS LINE - Language preference for the user
+    language = models.CharField(max_length=10, default='en')
+    
     def __str__(self):
         return self.username
 
