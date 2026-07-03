@@ -14,6 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # =========================
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-your-secret-key-here")
+
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.getenv(
@@ -70,47 +71,87 @@ DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
         conn_max_age=600,
-        ssl_require=True 
+        ssl_require=not DEBUG
     )
 }
 
 # =========================
-# CORS SETTINGS (Updated for localhost development)
+# CORS SETTINGS
 # =========================
-CORS_ALLOW_ALL_ORIGINS = False 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:61848",
-    "http://127.0.0.1:61848",
-    "https://drugshop-backend-1.onrender.com",
-]
+
+# Enable during development (Flutter Web)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# For production, set this to False and uncomment CORS_ALLOWED_ORIGINS below.
+# CORS_ALLOW_ALL_ORIGINS = False
+#
+# CORS_ALLOWED_ORIGINS = [
+#     "https://drugshop-backend-1.onrender.com",
+# ]
+
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
 CORS_ALLOW_HEADERS = [
-    "accept", "accept-encoding", "authorization", "content-type", 
-    "dnt", "origin", "user-agent", "x-csrftoken", "x-requested-with"
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 # =========================
 # CSRF SETTINGS
 # =========================
-CSRF_TRUSTED_ORIGINS = ["https://drugshop-backend-1.onrender.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://drugshop-backend-1.onrender.com",
+    "http://localhost",
+    "http://127.0.0.1",
+]
+
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = "Lax"
 
 # =========================
 # REST FRAMEWORK & OTHER SETTINGS
 # =========================
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
-    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
 
 AUTH_USER_MODEL = 'users.User'
+
 LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = 'UTC'
+
 USE_I18N = True
+
 USE_TZ = True
+
 STATIC_URL = '/static/'
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
