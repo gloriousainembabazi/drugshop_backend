@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'anymail',
 
     'his_grace_drugshop.users',
     'his_grace_drugshop.medicines',
@@ -150,15 +151,19 @@ SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = "Lax"
 
 # =========================
-# EMAIL SETTINGS
+# EMAIL SETTINGS (via SendGrid HTTP API)
 # =========================
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
+# NOTE: Render blocks outbound SMTP ports (587/25/465) on free-tier instances,
+# so raw SMTP (e.g. Gmail SMTP) hangs and times out. We use SendGrid's
+# HTTPS API instead via django-anymail, which works fine on Render and
+# requires NO changes to utils.py or views.py - send_mail() still works as-is.
+EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
+
+ANYMAIL = {
+    "SENDGRID_API_KEY": os.getenv("SENDGRID_API_KEY"),
+}
+
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "gloriousainembabazi16@gmail.com")
 
 # =========================
 # REST FRAMEWORK & OTHER SETTINGS
